@@ -1,5 +1,6 @@
 vim.loader.enable()
 
+
 local utils = require("utils")
 
 local expected_version = "0.11.0"
@@ -21,12 +22,8 @@ vim.cmd("source " .. vim.fs.joinpath(config_dir, "viml_conf/plugins.vim"))
 -- colorscheme settings
 require("colorschemes")
 
-vim.cmd.colorscheme("gruvbox")
+vim.cmd.colorscheme("gruvbox-baby")
 
--- Disable virtual_text since it's redundant due to lsp_lines.
-vim.diagnostic.config({
-  virtual_text = false,
-})
 --[[
 vim.cmd([[
   augroup WilderSetup
@@ -36,5 +33,4 @@ vim.cmd([[
   augroup END
 ]]
 vim.opt.mouse = 'a' --enable mouse
-
 

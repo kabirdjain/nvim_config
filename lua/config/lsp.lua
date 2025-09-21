@@ -57,7 +57,7 @@ local custom_attach = function(client, bufnr)
   -- Uncomment code below to enable inlay hint from language server, some LSP server supports inlay hint,
   -- but disable this feature by default, so you may need to enable inlay hint in the LSP server config.
   -- vim.lsp.inlay_hint.enable(true, {buffer=bufnr})
-
+--[[
   api.nvim_create_autocmd("CursorHold", {
     buffer = bufnr,
     callback = function()
@@ -84,6 +84,7 @@ local custom_attach = function(client, bufnr)
       vim.b.diagnostics_pos = cursor_pos
     end,
   })
+  ]]
 
   -- The blow command will highlight the current variable and its usages in the buffer.
   if client.server_capabilities.documentHighlightProvider then
@@ -117,13 +118,29 @@ local custom_attach = function(client, bufnr)
   end
 end
 
-local capabilities = require("cmp_nvim_lsp").default_capabilities()
+local original_capabilites = vim.lsp.protocol.make_client_capabilities()
+local capabilities = require('blink.cmp').get_lsp_capabilities(original_capabilities)
 
 -- required by nvim-ufo
 capabilities.textDocument.foldingRange = {
   dynamicRegistration = false,
   lineFoldingOnly = true,
 }
+
+require("mason-lspconfig").setup({
+    ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
+    automatic_installation = false,
+    handlers = {
+        function(server_name)
+            local server = servers[server_name] or {}
+            -- This handles overriding only values explicitly passed
+            -- by the server configuration above. Useful when disabling
+            -- certain features of an LSP (for example, turning off formatting for ts_ls)
+            server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
+            require("lspconfig")[server_name].setup(server)
+        end,
+    },
+})
 
 -- For what diagnostic is enabled in which type checking mode, check doc:
 -- https://github.com/microsoft/pyright/blob/main/docs/configuration.md#diagnostic-settings-defaults
@@ -227,17 +244,7 @@ if utils.executable("ltex-ls") then
   }
 end
 
-if utils.executable("clangd") then
-  lspconfig.clangd.setup {
-    on_attach = custom_attach,
-    capabilities = capabilities,
-    filetypes = { "c", "cpp", "cc" },
-    flags = {
-      debounce_text_changes = 500,
-    },
-  }
-end
-
+--[[
 -- set up vim-language-server
 if utils.executable("vim-language-server") then
   lspconfig.vimls.setup {
@@ -250,6 +257,7 @@ if utils.executable("vim-language-server") then
 else
   vim.notify("vim-language-server not found!", vim.log.levels.WARN, { title = "Nvim-config" })
 end
+
 
 -- set up bash-language-server
 if utils.executable("bash-language-server") then
@@ -277,6 +285,7 @@ if utils.executable("lua-language-server") then
     capabilities = capabilities,
   }
 end
+]]
 
 -- Change diagnostic signs.
 fn.sign_define("DiagnosticSignError", { text = "🆇", texthl = "DiagnosticSignError" })

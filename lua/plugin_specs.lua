@@ -19,9 +19,8 @@ vim.opt.rtp:prepend(lazypath)
 local firenvim_not_active = function()
   return not vim.g.started_by_firenvim
 end
-
 local plugin_specs = {
-  -- auto-completion engine
+  --[[ auto-completion engine
   {
     "iguanacucumber/magazine.nvim",
     name = "nvim-cmp",
@@ -38,19 +37,120 @@ local plugin_specs = {
       "L3MON4D3/LuaSnip",
       "rafamadriz/friendly-snippets",
       "saadparwaiz1/cmp_luasnip",
-    },
+    }, 
     config = function()
       require("config.nvim-cmp")
     end,
+  },]]
+  -- The BETTER autocompletion
+  {
+    'saghen/blink.cmp',
+    -- optional: provides snippets for the snippet source
+    dependencies = { 'rafamadriz/friendly-snippets' },
+
+    -- use a release tag to download pre-built binaries
+    version = '*',
+    -- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
+    build = 'cargo +nightly build --release',
+    -- If you use nix, you can build from source using latest nightly rust with:
+    -- build = 'nix run .#build-plugin',
+
+    ---@module 'blink.cmp'
+    ---@type blink.cmp.Config
+    opts = {
+      -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
+      -- 'super-tab' for mappings similar to vscode (tab to accept)
+      -- 'enter' for enter to accept
+      -- 'none' for no mappings
+      --
+      -- All presets have the following mappings:
+      -- C-space: Open menu or open docs if already open
+      -- C-n/C-p or Up/Down: Select next/previous item
+      -- C-e: Hide menu
+      -- C-k: Toggle signature help (if signature.enabled = true)
+      --
+      -- See :h blink-cmp-config-keymap for defining your own keymap
+      keymap = { preset = 'default' },
+
+      cmdline = {
+        keymap = { 
+          preset = 'none',
+          ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+          ['<C-e>'] = { 'hide', 'fallback' },
+          ['<Tab>'] = { 'select_and_accept', 'fallback' },
+          
+          ['<Up>'] = { 'select_prev', 'fallback' },
+          ['<Down>'] = { 'select_next', 'fallback' },
+          ['<C-k>'] = { 'select_prev', 'fallback_to_mappings' },
+          ['<C-j>'] = { 'select_next', 'fallback_to_mappings' },
+          
+          ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
+          ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+        },
+        completion = { menu = { auto_show = true } },
+      },
+
+      appearance = {
+        -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
+        -- Adjusts spacing to ensure icons are aligned
+        nerd_font_variant = 'mono'
+      },
+
+      -- (Default) Only show the documentation popup when manually triggered
+      completion = { documentation = { auto_show = true } },
+
+      -- Default list of enabled providers defined so that you can extend it
+      -- elsewhere in your config, without redefining it, due to `opts_extend`
+      sources = {
+        default = { 'lsp', 'path', 'snippets', 'buffer' },
+      },
+
+      -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
+      -- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
+      -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
+      --
+      -- See the fuzzy documentation for more information
+      fuzzy = { implementation = "prefer_rust_with_warning" }
+    },
+    opts_extend = { "sources.default" }
   },
   {
+    "moyiz/blink-emoji.nvim",
+  },
+  {
+    "Kaiser-Yang/blink-cmp-dictionary",
+  },  
+  {
     "neovim/nvim-lspconfig",
-    event = { "BufRead", "BufNewFile" },
+    dependencies = { 'saghen/blink.cmp' },
+    -- example calling setup directly for each LSP
     config = function()
-      require("config.lsp")
+      require(".config/lsp")
     end,
   },
-
+  {
+    "mason-org/mason-lspconfig.nvim",
+    opts = {},
+    dependencies = {
+        { "mason-org/mason.nvim", opts = {} },
+        "neovim/nvim-lspconfig",
+    },
+  },
+  {
+    'romgrk/barbar.nvim',
+    dependencies = {
+      'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
+    init = function() vim.g.barbar_auto_setup = false end,
+    opts = {
+      -- lazy.nvim will automatically call setup for you. put your options here, anything missing will use the default:
+      -- animation = true,
+        -- insert_at_start = true,
+        -- …etc.
+      },
+      version = '^1.0.0', -- optional: only update when a new 1.x version is released
+  },
   {
     "nvim-treesitter/nvim-treesitter",
     enabled = function()
@@ -148,11 +248,57 @@ local plugin_specs = {
   { "sainnhe/gruvbox-material", lazy = true },
   { "sainnhe/everforest", lazy = true },
   { "EdenEast/nightfox.nvim", lazy = true },
-  { "catppuccin/nvim", name = "catppuccin", lazy = true },
+  {
+    "catppuccin/nvim",
+    name = "catppuccin",
+    opts = {
+      term_colors = true,
+      transparent_background = false,
+      styles = {
+        comments = {},
+        conditionals = {},
+        loops = {},
+        functions = {},
+        keywords = {},
+        strings = {},
+        variables = {},
+        numbers = {},
+        booleans = {},
+        properties = {},
+        types = {},
+      },
+      color_overrides = {
+        mocha = {
+          base = "#000000",
+          mantle = "#000000",
+          crust = "#000000",
+        },
+      },
+      integrations = {
+        telescope = {
+          enabled = true,
+          style = "nvchad",
+        },
+        dropbar = {
+          enabled = true,
+          color_mode = true,
+        },
+      },
+    },
+  },
+  {
+    "dundargoc/fakedonalds.nvim"
+  },
   { "olimorris/onedarkpro.nvim", lazy = true },
   { "marko-cerovac/material.nvim", lazy = true }, 
   { "shaunsingh/solarized.nvim", lazy = true},
-  { "ellisonleao/gruvbox.nvim", lazy = true },
+  {
+    "ellisonleao/gruvbox.nvim", 
+    lazy = true,
+  },
+  {
+    "luisiacc/gruvbox-baby"
+  },
   { "projekt0n/github-nvim-theme", lazy = true },
   { "rose-pine/neovim", lazy = true },
   { "hyperb1iss/silkcircuit-nvim" },
@@ -162,9 +308,73 @@ local plugin_specs = {
     name = "arctic",
     branch = "v2",
   },
+  {
+    "eldritch-theme/eldritch.nvim",
+    lazy = false,
+    priority = 1000,
+    opts = {},
+  },
   { "rebelot/kanagawa.nvim", lazy = true },
   { "nvim-tree/nvim-web-devicons", event = "VeryLazy" },
-
+  {
+    'everviolet/nvim', name = 'evergarden',
+    priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
+    opts = {
+      theme = {
+        variant = 'winter', -- 'winter'|'fall'|'spring'|'summer'
+        accent = 'green',
+      },
+      editor = {
+        transparent_background = true,
+        sign = { color = 'none' },
+        float = {
+          color = 'mantle',
+          solid_border = false,
+        },
+        completion = {
+          color = 'surface0',
+        },
+      },
+    }
+  },
+  {
+    "ficcdaf/ashen.nvim",
+    -- optional but recommended,
+    -- pin to the latest stable release:
+    tag = "*",
+    lazy = false,
+    priority = 1000,
+    -- configuration is optional!
+    opts = {
+      -- your settings here
+    },
+  },
+  { "bluz71/vim-moonfly-colors", name = "moonfly", lazy = false, priority = 1000 },
+  { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 },
+  {
+      "water-sucks/darkrose.nvim",
+      lazy = false,
+      priority = 1000,
+  },
+  { 'datsfilipe/vesper.nvim' },
+  { 
+    'tiesen243/vercel.nvim',
+    config = function ()
+      require("vercel").setup({
+        theme = 'dark',
+        transparent = true,
+      })
+    end,
+  },
+  { 'ashish2508/Eezzy.nvim' },
+  {
+    "Abstract-IDE/Abstract-cs"
+  },
+  {
+    'aliqyan-21/darkvoid.nvim',
+    transparent = true,
+    glow = true
+  },
   {
     "nvim-lualine/lualine.nvim",
     event = "VeryLazy",
@@ -673,9 +883,56 @@ local plugin_specs = {
       -- or leave it empty to use the default settings
       -- refer to the configuration section below
       bigfile = { enabled = true },
-      dashboard = { enabled = false },
+      dashboard = {
+        preset = {
+          header = [[
+    ⠀⠀⠀⠀⠀⠀  ⠀⠀⠀⠀⠀⠀⣾⡳⣼⣆⠀⠀⢹⡄⠹⣷⣄⢠⠇⠻⣷⣶⢀⣸⣿⡾⡏⠀⠰⣿⣰⠏⠀⣀⡀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡀⣀⣀⣀⡹⣟⡪⢟⣷⠦⠬⣿⣦⣌⡙⠿⡆⠻⡌⠿⣦⣿⣿⣿⣿⣦⣿⡿⠟⠚⠉⠀⠉⠳⣄⡀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⡀⢀⣼⣟⠛⠛⠙⠛⠉⠻⢶⣮⢿⣯⡙⢶⡌⠲⢤⡑⠀⠈⠛⠟⢿⣿⠛⣿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠙⣆⠀⠀
+    ⠀⠀⠀⠀⠀⡸⠯⣙⠛⢉⣉⣙⣿⣿⡳⢶⣦⣝⢿⣆⠉⠻⣄⠈⢆⢵⡈⠀⠀⢰⡆⠀⣼⠓⠀⠀⠀ N a h,  ⠈⣷⠀
+    ⠀⠀⠀⠖⠉⠻⣟⡿⣿⣭⢽⣽⣶⣈⢛⣾⣿⣧⠀⠙⠓⠀⠑⢦⡀⠹⣧⢂⠀⣿⡇⢀⣿⠺⠇⠀   I'd     ⣿
+    ⠀⠀⠀⠀⠐⠈⠉⢛⣿⣿⣶⣤⣈⠉⣰⣗⡈⢛⣇⠀⣵⡀⠀⠘⣿⡄⢻⣤⠀⢻⡇⣼⣧⣿⡄⠀⠀ V I M   ⠀⡿⠀
+    ⠀⠀⠀⠀⠀⣠⣾⣿⢍⡉⠛⠻⣷⡆⠨⣿⣭⣤⣍⠀⢹⣷⡀⠀⠹⣿⡄⠈⠀⢿⠁⣿⣿⠏          ⠀⠀⠀⣇⠀
+    ⠀⠈⢻⣷⣿⣽⣿⣿⢍⣴⡏⠚⢛⣈⣍⠛⠛⠿⢦⣌⢙⠻⡆⠁⠀⠀⠀⣴⣦⠀⠀⠀⠐⢳⢻⣦⣀⠀⠀⠀⠀⠀⠀⠀⠀⢀⠮⠀⠀
+    ⠀⠀⠈⠙⣿⣧⣶⣿⠿⣧⣴⣿⢻⡉⠀⢀⣠⣴⣾⡟⠿⠃⠁⣠⣤⡶⣾⡟⠅⠀⣀⡄⠀⣾⢸⣿⣏⢻⢶⣦⣤⣤⣄⢶⣾⣿⣡⣤⡄
+    ⠀⠀⣠⣞⣋⣿⣿⣾⣿⡿⡛⣹⡟⣤⢰⡿⠟⠉⣀⣀⣤⣤⡠⠙⢁⣾⡿⠂⠀⣿⠟⣁⠀⣹⠀⣹⣿⡟⣼⣿⣿⣌⣿⣞⣿⣿⠁⠀⠀
+    ⠀⢠⡿⢛⢟⣿⣿⣿⣿⣿⣿⡟⣼⣿⣟⢓⠛⣿⣏⣿⣵⣗⣵⣴⣿⢟⡵⣣⣼⣿⢟⣵⣶⢻⣶⣿⠀⠀⣈⢻⣿⣿⣿⢿⣾⢿⣧⠀⠀
+    ⠀⠀⠀⠜⣿⣾⢿⣿⣿⣿⣾⣿⣿⣿⣿⣿⣿⣭⣿⣖⣿⢿⣿⡿⣿⣿⣿⡿⢡⢯⣿⣿⡵⣿⣿⡵⣿⣧⡿⣾⣷⣿⣿⢿⣿⡇⠉⠁⠀
+    ⠀⠀⠀⠀⣿⣥⣾⣿⣿⣿⣿⣿⣿⣿⡟⣭⠛⢟⣿⠃⠞⠟⣸⣿⠏⣸⣧⣀⠿⢿⣿⠞⣟⣿⣿⠞⢡⣽⣿⢿⣿⣿⣿⣿⣿⠁⠀⠀⠀
+    ⠀⠀⠀⠀⠟⠛⠫⣿⣿⣿⣿⣿⡿⣧⠛⣿⠛⣿⣿⣿⣷⡌⠹⡟⠀⠛⠁ ⠏⣼⣿⣿⣿⣷⡌⠛⣿⣿⣿⣿⣿⢀⣿⣿⣿⣿⣧⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠘⠋⣾⣷⣿⣿⣧⠙⠀⠙⢣⠝⠛⠋⣽⣷⢦⠇⠀⠀  ⠞⣤⠙⢣⠝⠛⠋⣽⠘⢻⣿⣿⢿⣼⣷⡟⢻⣷⠉⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠐⠟⢻⣿⣿⣿⡀⠀⠀⠀⠀⠀⠀⠀⠉⠀⠀⠀⠀⠀⠀⠉  ⠀⠀⠀⠀⣾⠟⠀⢸⣷⣿⡇⠀ ⠛⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠛⠁⠀⢹⣇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣿⣿⣿⡧⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣇⠀⠀⠀⠀⠀⠀⠀⠀⠲⣄⠀⡄⠆⠀⠀⠀⠀⠀⠀⠀⠀⣼⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣷⡀⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⣀⠀⠀⣠⣾⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⢻⣆⠀⠛⠁⠶⣶⣶⣶⣶⣶⣶⡶⠆⠘⠋⣠⡾⢫⣾⡟⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠛⠀⠙⣷⡀⠀⠀⠙⠛⠛⠛⠛⠋⠁⠀⢀⣴⠋⠀⣾⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣿⣰⣦⡀⠸⣿⣦⡀⠀⠀⠀⠀⠀⠀⢀⣴⡟⠁⠀⠐⢻⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣿⡄⢺⣿⡄⠹⣿⠻⢦⣤⣤⣤⣤⣶⣿⡟⢀⣀⠀⠀⢸⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+    ⠀⠀⠀⠀⢀⣠⣴⣾⣿⣿⣿⣿⣿⣿⣿⣿⣮⣿⣿⡀⠹⡷⣦⣀⡀⡀⢸⣿⠏⢠⣾⣿⠀⠀⣾⣿⣿⣿⣶⣄⣀⠀⠀⠀⠀⠀⠀⠀
+    ⣀⣤⣴⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠘⣷⣻⡟⠀⡼⠁⣴⣿⣿⣯⣥⣾⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⣀⠀⠀⠀
+    ⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣯⣿⣤⣤⣤⣬⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣶⣤⣄]],
+        },
+        formats = {
+          header = {
+            align = "center",
+          },
+        },
+        sections = {
+          { section = "header" , padding = 1},
+          { section = "startup" , padding = 1 },
+          { section = "keys", gap = 1, padding = 1 },
+          function ()
+            return {
+            align = 'center',
+            text = { "\"There is no sacrifice greater than someone else's\" -Skipper", 
+            },
+          }
+          end,
+        },
+      },
       dim = { enabled = true },
-      explorer = { enabled = true },
+      explorer = { enabled = true }, 
       image = { 
         enabled = true,
         doc = { 
@@ -769,11 +1026,97 @@ local plugin_specs = {
     lazy = false, -- This plugin is already lazy
   },
   {
-    "maan2003/lsp_lines.nvim",
+    'oribarilan/lensline.nvim',
+    tag = '1.1.0', -- or: branch = 'release/1.x' for latest non-breaking updates
+    event = 'LspAttach',
     config = function()
-      require("lsp_lines").setup()
+      require("lensline").setup()
     end,
   },
+  {
+    "folke/lazydev.nvim",
+    ft = "lua", -- only load on lua files
+    opts = {
+      library = {
+        -- See the configuration section for more details
+        -- Load luvit types when the `vim.uv` word is found
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+      },
+    },
+  },
+  {
+    "folke/trouble.nvim",
+    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    cmd = "Trouble",
+    keys = {
+      {
+        "<leader>xx",
+        "<cmd>Trouble diagnostics toggle<cr>",
+        desc = "Diagnostics (Trouble)",
+      },
+      {
+        "<leader>xX",
+        "<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+        desc = "Buffer Diagnostics (Trouble)",
+      },
+      {
+        "<leader>cs",
+        "<cmd>Trouble symbols toggle focus=false<cr>",
+        desc = "Symbols (Trouble)",
+      },
+      {
+        "<leader>cl",
+        "<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+        desc = "LSP Definitions / references / ... (Trouble)",
+      },
+      {
+        "<leader>xL",
+        "<cmd>Trouble loclist toggle<cr>",
+        desc = "Location List (Trouble)",
+      },
+      {
+        "<leader>xQ",
+        "<cmd>Trouble qflist toggle<cr>",
+        desc = "Quickfix List (Trouble)",
+      },
+    },
+  },
+  {
+    "folke/flash.nvim",
+    event = "VeryLazy",
+    ---@type Flash.Config
+    opts = {},
+    -- stylua: ignore
+    keys = {
+      { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
+      { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
+      { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
+      { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+      { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
+    },
+  },
+  {
+    "rachartier/tiny-inline-diagnostic.nvim",
+    event = "VeryLazy",
+    priority = 1000,
+    config = function()
+        require('tiny-inline-diagnostic').setup({
+          options = {
+            multilines = {
+              enabled = true,
+              always_show = true,
+            },
+            enable_on_insert = true,
+            enable_on_select = true,
+          }
+        })
+        vim.diagnostic.config({ virtual_text = false }) -- Disable default virtual text
+    end,
+  },
+  -- CP2077 colorscheme
+  {
+    dir = "~/CP2077.nvim"
+  }
 }
 
 require("lazy").setup {

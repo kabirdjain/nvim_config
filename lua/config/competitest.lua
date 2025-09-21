@@ -96,6 +96,7 @@ require('competitest').setup {
 		cpp = { exec = "./$(FNOEXT)" },
 		rust = { exec = "./$(FNOEXT)" },
 		python = { exec = "python", args = { "$(FNAME)" } },
+    lua = { exec = "lua", args = { "$(FNAME)" } },
 		java = { exec = "java", args = { "$(FNOEXT)" } },
 	},
 	multiple_testing = -1,
@@ -114,7 +115,8 @@ require('competitest').setup {
 	receive_print_message = true,
 	start_receiving_persistently_on_setup = false,
 	template_file = {
-    cpp = "~/Competitive_Programming/templates/cp_template.cpp"
+    cpp = "~/Competitive_Programming/templates/cp_template.cpp",
+    rust = "~/Competitive_Programming/templates/rust_template.rs"
   },
 	evaluate_template_modifiers = false,
 	date_format = "%c",
