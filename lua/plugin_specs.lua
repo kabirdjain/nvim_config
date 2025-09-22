@@ -42,74 +42,144 @@ local plugin_specs = {
       require("config.nvim-cmp")
     end,
   },]]
+  { "nvim-tree/nvim-web-devicons", event = "VeryLazy" },
   -- The BETTER autocompletion
   {
     'saghen/blink.cmp',
-    -- optional: provides snippets for the snippet source
-    dependencies = { 'rafamadriz/friendly-snippets' },
-
-    -- use a release tag to download pre-built binaries
     version = '*',
-    -- AND/OR build from source, requires nightly: https://rust-lang.github.io/rustup/concepts/channels.html#working-with-nightly-rust
     build = 'cargo +nightly build --release',
-    -- If you use nix, you can build from source using latest nightly rust with:
-    -- build = 'nix run .#build-plugin',
-
-    ---@module 'blink.cmp'
-    ---@type blink.cmp.Config
+    dependencies = {
+      'rafamadriz/friendly-snippets',
+      {
+        "onsails/lspkind-nvim",
+        opts = {
+          symbol_map = {
+            spell = "󰓆",
+            cmdline = "",
+            markdown = "",
+          },
+        },
+      },
+    },
     opts = {
-      -- 'default' (recommended) for mappings similar to built-in completions (C-y to accept)
-      -- 'super-tab' for mappings similar to vscode (tab to accept)
-      -- 'enter' for enter to accept
-      -- 'none' for no mappings
-      --
-      -- All presets have the following mappings:
-      -- C-space: Open menu or open docs if already open
-      -- C-n/C-p or Up/Down: Select next/previous item
-      -- C-e: Hide menu
-      -- C-k: Toggle signature help (if signature.enabled = true)
-      --
-      -- See :h blink-cmp-config-keymap for defining your own keymap
-      keymap = { preset = 'default' },
-
+      keymap = {
+        preset = 'none',
+        ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
+        ['<C-e>'] = { 'hide', 'fallback' },
+        ['<Tab>'] = { 'select_and_accept', 'fallback' },
+        ['<Up>'] = { 'select_prev', 'fallback' },
+        ['<Down>'] = { 'select_next', 'fallback' },
+        ['<C-k>'] = { 'select_prev', 'fallback_to_mappings' },
+        ['<C-j>'] = { 'select_next', 'fallback_to_mappings' },
+        ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
+        ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+      },
       cmdline = {
-        keymap = { 
+        sources = function()
+          local type = vim.fn.getcmdtype()
+          if type == "/" or type == "?" then return { "buffer" } end
+          if type == ":" or type == "@" then
+            return { "cmdline", "path", "buffer" }
+          end
+          return {}
+        end,
+        keymap = {
           preset = 'none',
           ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
           ['<C-e>'] = { 'hide', 'fallback' },
           ['<Tab>'] = { 'select_and_accept', 'fallback' },
-          
           ['<Up>'] = { 'select_prev', 'fallback' },
           ['<Down>'] = { 'select_next', 'fallback' },
           ['<C-k>'] = { 'select_prev', 'fallback_to_mappings' },
           ['<C-j>'] = { 'select_next', 'fallback_to_mappings' },
-          
           ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
           ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
         },
         completion = { menu = { auto_show = true } },
       },
-
       appearance = {
-        -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-        -- Adjusts spacing to ensure icons are aligned
-        nerd_font_variant = 'mono'
+        use_nvim_cmp_as_default = false,
+        nerd_font_variant = "normal",
       },
-
-      -- (Default) Only show the documentation popup when manually triggered
-      completion = { documentation = { auto_show = true } },
-
-      -- Default list of enabled providers defined so that you can extend it
-      -- elsewhere in your config, without redefining it, due to `opts_extend`
+      completion = {
+        menu = {
+          border = "single",
+          draw = {
+            columns = {
+              { "kind_icon" },
+              { "label", "label_description", gap = 1 },
+            },
+            components = {
+              label = {
+                text = function(ctx)
+                    return require("colorful-menu").blink_components_text(ctx)
+                end,
+                highlight = function(ctx)
+                    return require("colorful-menu").blink_components_highlight(ctx)
+                end,
+              },
+              kind_icon = {
+                ellipsis = false,
+                text = function(ctx)
+                  local lspkind = require("lspkind")
+                  local icon = ctx.kind_icon
+                  if vim.tbl_contains({ "Path" }, ctx.source_name) then
+                    local dev_icon, _ = require("nvim-web-devicons").get_icon(ctx.label)
+                    if dev_icon then icon = dev_icon end
+                  else
+                    icon = require("lspkind").symbolic(ctx.kind, {
+                        mode = "symbol",
+                    })
+                  end 
+                  return icon .. ctx.icon_gap
+                end,
+                highlight = function(ctx)
+                  local hl = ctx.kind_hl
+                  if vim.tbl_contains({ "Path" }, ctx.source_name) then
+                    local dev_icon, dev_hl = require("nvim-web-devicons").get_icon(ctx.label)
+                    if dev_icon then
+                      hl = dev_hl
+                    end
+                  end
+                  return hl
+                end,
+              },
+            },
+          },
+        }, 
+        documentation = {
+          auto_show = true,
+          window = { border = "single" },
+        },
+        accept = { auto_brackets = { enabled = false } },  
+      },
+      signature = {
+        enabled = true, 
+        window = { border = "single" },
+      },
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'buffer' },
+        default = { 'lazydev', 'omni', 'markdown', 'lsp', 'path', 'snippets', 'buffer' },
+        providers = { 
+          lsp = { 
+            fallbacks = {},
+          },
+          lazydev = {
+            name = "LazyDev",
+            module = "lazydev.integrations.blink", 
+            score_offset = 100,
+          },
+          omni = {
+            name = "Omni",
+            module = "blink.cmp.sources.complete_func",
+            opts = { disable_omnifuncs = { "v:lua.vim.lsp.omnifunc" } },
+          },
+          markdown = {
+            name = "markdown",
+            module = "render-markdown.integ.blink",
+            fallbacks = { "lsp" },
+          },
+        },
       },
-
-      -- (Default) Rust fuzzy matcher for typo resistance and significantly better performance
-      -- You may use a lua implementation instead by using `implementation = "lua"` or fallback to the lua implementation,
-      -- when the Rust fuzzy matcher is not available, by using `implementation = "prefer_rust"`
-      --
-      -- See the fuzzy documentation for more information
       fuzzy = { implementation = "prefer_rust_with_warning" }
     },
     opts_extend = { "sources.default" }
@@ -121,13 +191,110 @@ local plugin_specs = {
     "Kaiser-Yang/blink-cmp-dictionary",
   },  
   {
+    "xzbdmw/colorful-menu.nvim",
+    config = function()
+        -- You don't need to set these options.
+        require("colorful-menu").setup({
+            ls = {
+                lua_ls = {
+                    -- Maybe you want to dim arguments a bit.
+                    arguments_hl = "@comment",
+                },
+                gopls = {
+                    -- By default, we render variable/function's type in the right most side,
+                    -- to make them not to crowd together with the original label.
+
+                    -- when true:
+                    -- foo             *Foo
+                    -- ast         "go/ast"
+
+                    -- when false:
+                    -- foo *Foo
+                    -- ast "go/ast"
+                    align_type_to_right = true,
+                    -- When true, label for field and variable will format like "foo: Foo"
+                    -- instead of go's original syntax "foo Foo". If align_type_to_right is
+                    -- true, this option has no effect.
+                    add_colon_before_type = false,
+                    -- See https://github.com/xzbdmw/colorful-menu.nvim/pull/36
+                    preserve_type_when_truncate = true,
+                },
+                -- for lsp_config or typescript-tools
+                ts_ls = {
+                    -- false means do not include any extra info,
+                    -- see https://github.com/xzbdmw/colorful-menu.nvim/issues/42
+                    extra_info_hl = "@comment",
+                },
+                vtsls = {
+                    -- false means do not include any extra info,
+                    -- see https://github.com/xzbdmw/colorful-menu.nvim/issues/42
+                    extra_info_hl = "@comment",
+                },
+                ["rust-analyzer"] = {
+                    -- Such as (as Iterator), (use std::io).
+                    extra_info_hl = "@comment",
+                    -- Similar to the same setting of gopls.
+                    align_type_to_right = true,
+                    -- See https://github.com/xzbdmw/colorful-menu.nvim/pull/36
+                    preserve_type_when_truncate = true,
+                },
+                clangd = {
+                    -- Such as "From <stdio.h>".
+                    extra_info_hl = "@comment",
+                    -- Similar to the same setting of gopls.
+                    align_type_to_right = true,
+                    -- the hl group of leading dot of "•std::filesystem::permissions(..)"
+                    import_dot_hl = "@comment",
+                    -- See https://github.com/xzbdmw/colorful-menu.nvim/pull/36
+                    preserve_type_when_truncate = true,
+                },
+                zls = {
+                    -- Similar to the same setting of gopls.
+                    align_type_to_right = true,
+                },
+                roslyn = {
+                    extra_info_hl = "@comment",
+                },
+                dartls = {
+                    extra_info_hl = "@comment",
+                },
+                -- The same applies to pyright/pylance
+                basedpyright = {
+                    -- It is usually import path such as "os"
+                    extra_info_hl = "@comment",
+                },
+                pylsp = {
+                    extra_info_hl = "@comment",
+                    -- Dim the function argument area, which is the main
+                    -- difference with pyright.
+                    arguments_hl = "@comment",
+                },
+                -- If true, try to highlight "not supported" languages.
+                fallback = true,
+                -- this will be applied to label description for unsupport languages
+                fallback_extra_info_hl = "@comment",
+            },
+            -- If the built-in logic fails to find a suitable highlight group for a label,
+            -- this highlight is applied to the label.
+            fallback_highlight = "@variable",
+            -- If provided, the plugin truncates the final displayed text to
+            -- this width (measured in display cells). Any highlights that extend
+            -- beyond the truncation point are ignored. When set to a float
+            -- between 0 and 1, it'll be treated as percentage of the width of
+            -- the window: math.floor(max_width * vim.api.nvim_win_get_width(0))
+            -- Default 60.
+            max_width = 60,
+        })
+    end,
+  },
+  {
     "neovim/nvim-lspconfig",
     dependencies = { 'saghen/blink.cmp' },
     -- example calling setup directly for each LSP
     config = function()
       require(".config/lsp")
     end,
-  },
+  }, 
   {
     "mason-org/mason-lspconfig.nvim",
     opts = {},
@@ -135,7 +302,7 @@ local plugin_specs = {
         { "mason-org/mason.nvim", opts = {} },
         "neovim/nvim-lspconfig",
     },
-  },
+  }, 
   {
     'romgrk/barbar.nvim',
     dependencies = {
@@ -315,7 +482,6 @@ local plugin_specs = {
     opts = {},
   },
   { "rebelot/kanagawa.nvim", lazy = true },
-  { "nvim-tree/nvim-web-devicons", event = "VeryLazy" },
   {
     'everviolet/nvim', name = 'evergarden',
     priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
