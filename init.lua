@@ -32,5 +32,13 @@ vim.cmd([[
   autocmd VimEnter * silent! UpdateRemotePlugins
   augroup END
 ]]
+
+--[[ transparent background
+vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
+vim.api.nvim_set_hl(0, 'FloatBorder', { bg = 'none' })
+vim.api.nvim_set_hl(0, 'Pmenu', { bg = 'none' })
+]]
+
 vim.opt.mouse = 'a' --enable mouse
 

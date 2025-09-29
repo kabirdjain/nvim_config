@@ -66,7 +66,7 @@ local plugin_specs = {
         preset = 'none',
         ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
         ['<C-e>'] = { 'hide', 'fallback' },
-        ['<Tab>'] = { 'select_and_accept', 'fallback' },
+        ['<C-y>'] = { 'select_and_accept', 'fallback' },
         ['<Up>'] = { 'select_prev', 'fallback' },
         ['<Down>'] = { 'select_next', 'fallback' },
         ['<C-k>'] = { 'select_prev', 'fallback_to_mappings' },
@@ -87,15 +87,17 @@ local plugin_specs = {
           preset = 'none',
           ['<C-space>'] = { 'show', 'show_documentation', 'hide_documentation' },
           ['<C-e>'] = { 'hide', 'fallback' },
-          ['<Tab>'] = { 'select_and_accept', 'fallback' },
+          ['<C-y>'] = { 'select_and_accept', 'fallback' },
           ['<Up>'] = { 'select_prev', 'fallback' },
           ['<Down>'] = { 'select_next', 'fallback' },
           ['<C-k>'] = { 'select_prev', 'fallback_to_mappings' },
           ['<C-j>'] = { 'select_next', 'fallback_to_mappings' },
           ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
           ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
+        }, 
+        completion = { 
+          menu = { auto_show = true },
         },
-        completion = { menu = { auto_show = true } },
       },
       appearance = {
         use_nvim_cmp_as_default = false,
@@ -117,7 +119,7 @@ local plugin_specs = {
                 highlight = function(ctx)
                     return require("colorful-menu").blink_components_highlight(ctx)
                 end,
-              },
+              }, 
               kind_icon = {
                 ellipsis = false,
                 text = function(ctx)
@@ -144,6 +146,18 @@ local plugin_specs = {
                   return hl
                 end,
               },
+              kind = {
+                highlight = function(ctx)
+                  local hl = ctx.kind_hl
+                  if vim.tbl_contains({ "Path" }, ctx.source_name) then
+                    local dev_icon, dev_hl = require("nvim-web-devicons").get_icon(ctx.label)
+                    if dev_icon then
+                      hl = dev_hl
+                    end
+                  end
+                  return hl
+                end,
+              }
             },
           },
         }, 
@@ -303,7 +317,7 @@ local plugin_specs = {
         "neovim/nvim-lspconfig",
     },
   }, 
-  {
+  { 
     'romgrk/barbar.nvim',
     dependencies = {
       'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
@@ -1091,12 +1105,11 @@ local plugin_specs = {
           function ()
             return {
             align = 'center',
-            text = { "\"There is no sacrifice greater than someone else's\" -Skipper", 
-            },
-          }
+            text = { "\"There is no sacrifice greater than someone else's\" -Skipper", },
+            }
           end,
         },
-      },
+      }, 
       dim = { enabled = true },
       explorer = { enabled = true }, 
       image = { 
