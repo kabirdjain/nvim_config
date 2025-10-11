@@ -950,6 +950,7 @@ local plugin_specs = {
       debug = true, -- Enable debugging
       -- See Configuration section for rest
     },
+    event = "VeryLazy",
   -- See Commands section for default commands if you want to lazy load on them
   },
   {
@@ -969,7 +970,8 @@ local plugin_specs = {
     enabled = false,
     config = function ()
       require("copilot_cmp").setup()
-    end
+    end,
+    event = "VeryLazy",
   },
   {
     "smjonas/live-command.nvim",
@@ -1291,6 +1293,9 @@ local plugin_specs = {
         })
         vim.diagnostic.config({ virtual_text = false }) -- Disable default virtual text
     end,
+  },
+  {
+    "lewis6991/spaceless.nvim",
   },
   -- CP2077 colorscheme
   {
