@@ -94,8 +94,8 @@ local plugin_specs = {
           ['<C-j>'] = { 'select_next', 'fallback_to_mappings' },
           ['<C-b>'] = { 'scroll_documentation_up', 'fallback' },
           ['<C-f>'] = { 'scroll_documentation_down', 'fallback' },
-        }, 
-        completion = { 
+        },
+        completion = {
           menu = { auto_show = true },
         },
       },
@@ -119,7 +119,8 @@ local plugin_specs = {
                 highlight = function(ctx)
                     return require("colorful-menu").blink_components_highlight(ctx)
                 end,
-              }, 
+              },
+              --[[
               kind_icon = {
                 ellipsis = false,
                 text = function(ctx)
@@ -132,7 +133,7 @@ local plugin_specs = {
                     icon = require("lspkind").symbolic(ctx.kind, {
                         mode = "symbol",
                     })
-                  end 
+                  end
                   return icon .. ctx.icon_gap
                 end,
                 highlight = function(ctx)
@@ -146,6 +147,7 @@ local plugin_specs = {
                   return hl
                 end,
               },
+              ]]
               kind = {
                 highlight = function(ctx)
                   local hl = ctx.kind_hl
@@ -429,6 +431,15 @@ local plugin_specs = {
   { "sainnhe/gruvbox-material", lazy = true },
   { "sainnhe/everforest", lazy = true },
   { "EdenEast/nightfox.nvim", lazy = true },
+  {
+    "oskarnurm/koda.nvim",
+    lazy = false, -- make sure we load this during startup if it is your main colorscheme
+    priority = 1000, -- make sure to load this before all the other start plugins
+    config = function()
+      -- require("koda").setup({ transparent = true })
+      vim.cmd("colorscheme koda")
+    end,
+  },
   {
     "catppuccin/nvim",
     name = "catppuccin",
