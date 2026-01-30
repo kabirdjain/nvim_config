@@ -244,7 +244,6 @@ if utils.executable("ltex-ls") then
   }
 end
 
---[[
 -- set up vim-language-server
 if utils.executable("vim-language-server") then
   lspconfig.vimls.setup {
@@ -258,7 +257,7 @@ else
   vim.notify("vim-language-server not found!", vim.log.levels.WARN, { title = "Nvim-config" })
 end
 
-
+--[[
 -- set up bash-language-server
 if utils.executable("bash-language-server") then
   lspconfig.bashls.setup {

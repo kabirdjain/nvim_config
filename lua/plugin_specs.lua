@@ -484,6 +484,7 @@ local plugin_specs = {
   { "olimorris/onedarkpro.nvim", lazy = true },
   { "marko-cerovac/material.nvim", lazy = true }, 
   { "shaunsingh/solarized.nvim", lazy = true},
+  { "folke/tokyonight.nvim" },
   {
     "ellisonleao/gruvbox.nvim", 
     lazy = true,
