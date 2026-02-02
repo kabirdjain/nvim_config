@@ -1275,6 +1275,14 @@ local plugin_specs = {
     },
   },
   {
+    "Maxteabag/sqlit.nvim",
+    opts = {},
+    cmd = "Sqlit",
+    keys = {
+      { "<leader>D", function() require("sqlit").open() end, desc = "Database (sqlit)" },
+    },
+  },
+  {
     "folke/flash.nvim",
     event = "VeryLazy",
     ---@type Flash.Config
