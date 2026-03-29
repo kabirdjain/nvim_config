@@ -305,6 +305,7 @@ local plugin_specs = {
   },
   {
     "neovim/nvim-lspconfig",
+    event = { 'BufReadPre', 'BufNewFile' },
     dependencies = { 'saghen/blink.cmp' },
     -- example calling setup directly for each LSP
     config = function()
@@ -313,6 +314,7 @@ local plugin_specs = {
   }, 
   {
     "mason-org/mason-lspconfig.nvim",
+    event = 'BufReadPre',
     opts = {},
     dependencies = {
         { "mason-org/mason.nvim", opts = {} },
@@ -331,6 +333,7 @@ local plugin_specs = {
       -- animation = true,
         -- insert_at_start = true,
         -- …etc.
+        preset = 'default'
       },
       version = '^1.0.0', -- optional: only update when a new 1.x version is released
   },
@@ -342,7 +345,7 @@ local plugin_specs = {
       end
       return false
     end,
-    event = "VeryLazy",
+    event = { 'BufReadPost', 'BufNewFile' },
     build = ":TSUpdate",
     config = function()
       require("config.treesitter")
@@ -420,152 +423,20 @@ local plugin_specs = {
   },
   {
     "MeanderingProgrammer/markdown.nvim",
+    ft = 'markdown',
     main = "render-markdown",
     opts = {},
     dependencies = { "nvim-treesitter/nvim-treesitter", "nvim-tree/nvim-web-devicons" },
   },
-  -- plugins for coloring, set lazy = false if you want to use it
-  { "navarasu/onedark.nvim", lazy = true },
-  { "sainnhe/edge", lazy = true },
-  { "sainnhe/sonokai", lazy = true },
-  { "sainnhe/gruvbox-material", lazy = true },
-  { "sainnhe/everforest", lazy = true },
-  { "EdenEast/nightfox.nvim", lazy = true },
+  -- current colorscheme, I deleted all the other colorschemes that were here to improve performance
   {
-    "oskarnurm/koda.nvim",
-    lazy = false, -- make sure we load this during startup if it is your main colorscheme
-    priority = 1000, -- make sure to load this before all the other start plugins
+    "loctvl842/monokai-pro.nvim",
+    lazy = false,
+    priority = 1000,
     config = function()
-      -- require("koda").setup({ transparent = true })
-      vim.cmd("colorscheme koda")
+      require("monokai-pro").setup()
+      vim.cmd.colorscheme("monokai-pro")
     end,
-  },
-  {
-    "catppuccin/nvim",
-    name = "catppuccin",
-    opts = {
-      term_colors = true,
-      transparent_background = false,
-      styles = {
-        comments = {},
-        conditionals = {},
-        loops = {},
-        functions = {},
-        keywords = {},
-        strings = {},
-        variables = {},
-        numbers = {},
-        booleans = {},
-        properties = {},
-        types = {},
-      },
-      color_overrides = {
-        mocha = {
-          base = "#000000",
-          mantle = "#000000",
-          crust = "#000000",
-        },
-      },
-      integrations = {
-        telescope = {
-          enabled = true,
-          style = "nvchad",
-        },
-        dropbar = {
-          enabled = true,
-          color_mode = true,
-        },
-      },
-    },
-  },
-  {
-    "dundargoc/fakedonalds.nvim"
-  },
-  { "olimorris/onedarkpro.nvim", lazy = true },
-  { "marko-cerovac/material.nvim", lazy = true }, 
-  { "shaunsingh/solarized.nvim", lazy = true},
-  { "folke/tokyonight.nvim" },
-  {
-    "ellisonleao/gruvbox.nvim", 
-    lazy = true,
-  },
-  {
-    "luisiacc/gruvbox-baby"
-  },
-  { "projekt0n/github-nvim-theme", lazy = true },
-  { "rose-pine/neovim", lazy = true },
-  { "hyperb1iss/silkcircuit-nvim" },
-  {
-    "rockyzhang24/arctic.nvim",
-    dependencies = { "rktjmp/lush.nvim" },
-    name = "arctic",
-    branch = "v2",
-  },
-  {
-    "eldritch-theme/eldritch.nvim",
-    lazy = false,
-    priority = 1000,
-    opts = {},
-  },
-  { "rebelot/kanagawa.nvim", lazy = true },
-  {
-    'everviolet/nvim', name = 'evergarden',
-    priority = 1000, -- Colorscheme plugin is loaded first before any other plugins
-    opts = {
-      theme = {
-        variant = 'winter', -- 'winter'|'fall'|'spring'|'summer'
-        accent = 'green',
-      },
-      editor = {
-        transparent_background = true,
-        sign = { color = 'none' },
-        float = {
-          color = 'mantle',
-          solid_border = false,
-        },
-        completion = {
-          color = 'surface0',
-        },
-      },
-    }
-  },
-  {
-    "ficcdaf/ashen.nvim",
-    -- optional but recommended,
-    -- pin to the latest stable release:
-    tag = "*",
-    lazy = false,
-    priority = 1000,
-    -- configuration is optional!
-    opts = {
-      -- your settings here
-    },
-  },
-  { "bluz71/vim-moonfly-colors", name = "moonfly", lazy = false, priority = 1000 },
-  { 'dasupradyumna/midnight.nvim', lazy = false, priority = 1000 },
-  {
-      "water-sucks/darkrose.nvim",
-      lazy = false,
-      priority = 1000,
-  },
-  { 'datsfilipe/vesper.nvim' },
-  { 
-    'tiesen243/vercel.nvim',
-    config = function ()
-      require("vercel").setup({
-        theme = 'dark',
-        transparent = true,
-      })
-    end,
-  },
-  { 'ashish2508/Eezzy.nvim' },
-  {
-    "Abstract-IDE/Abstract-cs"
-  },
-  {
-    'aliqyan-21/darkvoid.nvim',
-    transparent = true,
-    glow = true
   },
   {
     "nvim-lualine/lualine.nvim",
@@ -575,7 +446,7 @@ local plugin_specs = {
       require("config.lualine")
     end,
   },
-
+--[[
   {
     "akinsho/bufferline.nvim",
     event = { "BufEnter" },
@@ -584,6 +455,7 @@ local plugin_specs = {
       require("config.bufferline")
     end,
   },
+  ]]
 
   -- fancy start screen
   {
@@ -612,7 +484,7 @@ local plugin_specs = {
   {
     "kevinhwang91/nvim-ufo",
     dependencies = "kevinhwang91/promise-async",
-    event = "VeryLazy",
+    event = { 'BufReadPost', 'BufNewFile' },
     opts = {},
     init = function()
       vim.o.foldcolumn = "1" -- '0' is not bad
@@ -701,6 +573,8 @@ local plugin_specs = {
   -- Manage your yank history
   {
     "gbprod/yanky.nvim",
+    -- change later
+    enabled = false,
     config = function()
       require("config.yanky")
     end,
@@ -954,6 +828,23 @@ local plugin_specs = {
   },
   {
     "CopilotC-Nvim/CopilotChat.nvim",
+    cmd = {
+      "CopilotChat",
+      "CopilotChatOpen",
+      "CopilotChatClose",
+      "CopilotChatToggle",
+      "CopilotChatStop",
+      "CopilotChatReset",
+      "CopilotChatExplain",
+      "CopilotChatReview",
+      "CopilotChatFix",
+      "CopilotChatOptimize",
+      "CopilotChatDocs",
+      "CopilotChatTests",
+      "CopilotChatFixDiagnostic",
+      "CopilotChatCommit",
+      "CopilotChatCommitStaged",
+    },
     dependencies = {
       { "zbirenbaum/copilot.lua" }, -- or github/copilot.vim
       { "nvim-lua/plenary.nvim" }, -- for curl, log wrapper
@@ -962,7 +853,6 @@ local plugin_specs = {
       debug = true, -- Enable debugging
       -- See Configuration section for rest
     },
-    event = "VeryLazy",
   -- See Commands section for default commands if you want to lazy load on them
   },
   {
@@ -1006,6 +896,7 @@ local plugin_specs = {
   {
     "Bekaboo/dropbar.nvim",
   },
+  --[[
   {
     "vhyrro/luarocks.nvim",
     priority = 1000, -- Very high priority is required, luarocks.nvim should run as the first plugin in your config.
@@ -1014,6 +905,7 @@ local plugin_specs = {
       -- luarocks_build_args = { "--with-lua=/my/path" }, -- extra options to pass to luarocks's configuration script
     },
   },
+  ]]
   {
     "catgoose/nvim-colorizer.lua",
     event = "BufReadPre",
@@ -1062,7 +954,8 @@ local plugin_specs = {
   {
     'xeluxee/competitest.nvim',
     dependencies = 'MunifTanjim/nui.nvim',
-    config = function() 
+    cmd = 'CompetiTest',
+    config = function()
       require('config.competitest')
     end,
   },
@@ -1147,6 +1040,7 @@ local plugin_specs = {
   },
   {
     'nvimdev/lspsaga.nvim',
+    event = 'LspAttach',
     config = function()
     require('lspsaga').setup({})
     end,

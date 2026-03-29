@@ -16,10 +16,8 @@ require("custom-autocmd")
 require("mappings")
 -- all the plugins installed and their configurations
 vim.cmd("source " .. vim.fs.joinpath(config_dir, "viml_conf/plugins.vim"))
--- colorscheme settings
-require("colorschemes")
 
-vim.cmd.colorscheme("gruvbox-baby")
+vim.cmd.colorscheme("monokai-pro")
 
 --[[
 vim.cmd([[
